@@ -3,3 +3,6 @@ matplotlib
 seaborn
 scikit-learn
 pythainlp
+requests
+beautifulsoup4
+python-dotenv
