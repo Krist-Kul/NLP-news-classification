@@ -19,3 +19,9 @@ conda activate thai-news-cls
 ```batch
 pip install -r requirements.txt
 ```
+
+# To use crawler
+Note: files will be saved in /data folder as .csv format
+```batch
+python crawl_thairath.py --sitemap URL.xml
+```
