@@ -3,3 +3,5 @@ matplotlib
 seaborn
 scikit-learn
 pythainlp
+bs4
+dotenv

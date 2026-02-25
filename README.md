@@ -19,3 +19,8 @@ conda activate thai-news-cls
 ```batch
 pip install -r requirements.txt
 ```
+
+# Crawler
+```
+python crawl_thairath.py --years [...] [...]
+```
