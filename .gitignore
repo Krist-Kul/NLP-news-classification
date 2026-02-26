@@ -2,3 +2,4 @@ nlp_dataset/
 *.js
 *.png
 thairath_test.csv
+thairath_train_filtered.csv

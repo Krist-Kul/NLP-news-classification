@@ -6,6 +6,7 @@ import argparse
 import requests
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
+import pandas as pd
 
 def get_xml_root(url):
     try:
@@ -44,9 +45,10 @@ def collect_urls(index_url, target_years):
             links = [loc.text for loc in links_elements if loc.text]
             # --- SAFETY GUARD END ---
 
-            # Filter for news and money sections
-            filtered = [l for l in links if l and ('/news/' in l or '/money/' in l)]
-            article_links.extend(filtered)
+            # Filter for news and money sections, OPTIONAL (uncomment if needed)
+            # filtered = [l for l in links if l and ('/news/' in l or '/money/' in l)]
+            # article_links.extend(filtered)
+            article_links.extend(links)
                 
     return article_links
 
@@ -61,7 +63,10 @@ def scrape_article(url):
         date_tag = soup.find('meta', property="article:published_time")
         paragraphs = soup.find_all('p')
         content = " ".join([p.get_text().strip() for p in paragraphs if len(p.get_text()) > 20])
-        
+
+        if not content:
+            return None
+
         return {
             'id': article_id.group(1) if article_id else "",
             'date': date_tag['content'] if date_tag else "",
@@ -75,33 +80,31 @@ def scrape_article(url):
 def main():
     parser = argparse.ArgumentParser(description="Thairath Sitemap Crawler")
     parser.add_argument('--years', nargs='+', required=True, help="Years to filter (e.g. 2024 2025)")
-    parser.add_argument('--limit', type=int, default=None, help="Limit total articles to scrape")
+    parser.add_argument('--limit', type=int, default=1000, help="Limit total articles to scrape")
     parser.add_argument('--out', type=str, default="thairath_export.csv", help="Output filename")
     
     args = parser.parse_args()
     
     root_sitemap = "https://www.thairath.co.th/sitemap.xml"
     urls = collect_urls(root_sitemap, args.years)
-    
-    if args.limit:
-        urls = urls[:args.limit]
-        
-    print(f"[*] Found {len(urls)} articles total. Starting crawl...")
-    
+    print(f"[*] Found {len(urls)} URLs total. Starting crawl...")
+
     data_list = []
-    for i, url in enumerate(urls):
-        data = scrape_article(url)
+    i = 0
+    while len(data_list) < args.limit and i < len(urls):
+        data = scrape_article(urls[i])
         if data:
             data_list.append(data)
-            print(f"  [{i+1}/{len(urls)}] Scraped: {data['headline'][:40]}...")
+            print(f"  [{len(data_list)}/{args.limit}] Scraped: {data['headline'][:40]}...")
+        i += 1
         time.sleep(0.05)
         
     if data_list:
-        with open(args.out, 'w', encoding='utf-8-sig', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=data_list[0].keys())
-            writer.writeheader()
-            writer.writerows(data_list)
+        df = pd.DataFrame(data_list)
+        df.to_csv(args.out, index=False, encoding='utf-8-sig')
         print(f"\n[SUCCESS] Saved to {args.out}")
+    else:
+        print("\n[!] No articles scraped. Check your filters and try again.")
 
 if __name__ == "__main__":
     main()

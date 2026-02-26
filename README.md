@@ -22,5 +22,5 @@ pip install -r requirements.txt
 
 # Crawler
 ```
-python crawl_thairath.py --years [...] [...]
+python crawl_thairath.py --years [...] [...] --limit [default=1000]
 ```
